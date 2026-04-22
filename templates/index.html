@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="header">Grocery Management System</div>
+
+<div class="container">
+
+<div class="card">
+<h3>Add Product</h3>
+
+<form action="/add_product" method="post">
+    <input type="text" name="name" placeholder="Product Name">
+    <input type="text" name="price" placeholder="Price">
+    <input type="text" name="qty" placeholder="Quantity">
+    <button>Add Product</button>
+</form>
+</div>
+
+<a href="/products">View Products</a>
+
+</div>
+
+</body>
+</html>

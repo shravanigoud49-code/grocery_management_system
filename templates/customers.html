@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="header">Customer History</div>
+
+<div class="container">
+
+<div class="card">
+
+<table>
+<tr>
+<th>Product</th>
+<th>Qty</th>
+<th>Total</th>
+</tr>
+
+{% for row in data %}
+<tr>
+<td>{{row[0]}}</td>
+<td>{{row[1]}}</td>
+<td>{{row[2]}}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+<h2>Products</h2>
+
+<table border="1">
+<tr>
+<th>Name</th>
+<th>Price</th>
+<th>Quantity</th>
+<th>Action</th>
+</tr>
+
+{% for p in products %}
+<tr>
+<td>{{p[1]}}</td>
+<td>{{p[2]}}</td>
+<td>{{p[3]}}</td>
+<td><a href="/add_to_cart/{{p[1]}}">Add to Cart</a></td>
+</tr>
+{% endfor %}
+
+</table>
+
+<br>
+<a href="/cart">Go to Cart</a>

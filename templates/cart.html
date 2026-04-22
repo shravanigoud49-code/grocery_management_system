@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="header">Cart</div>
+
+<div class="container">
+
+<div class="card">
+
+<table>
+<tr>
+<th>Name</th>
+<th>Price</th>
+<th>Qty</th>
+<th>Total</th>
+</tr>
+
+{% for item in cart %}
+<tr>
+<td>{{item[0]}}</td>
+<td>{{item[1]}}</td>
+<td>{{item[2]}}</td>
+<td>{{item[3]}}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<h3>Total = {{total}}</h3>
+
+<form action="/bill" method="post">
+    <input type="text" name="phone" placeholder="Phone Number">
+    <button>Generate Bill</button>
+</form>
+
+</div>
+
+</div>
+
+</body>
+</html>
