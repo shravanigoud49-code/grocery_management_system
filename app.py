@@ -1,118 +1,92 @@
-from flask import Flask
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template_string, request, redirect
 import mysql.connector
-import os
+
 app = Flask(__name__)
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
 
-# ✅ FIRST create app
-
-
-# ✅ THEN database
+# 🔹 MySQL Connection (Change credentials if needed)
 db = mysql.connector.connect(
-    host="shinkansen.proxy.rlwy.net",
+    host="localhost",        # change if using online DB
     user="root",
-    password="hifIFrIsbTVkpOtJLgehLKIoROCleMkG",
-    database="railway",
-    port=14321
+    password="",
+    database="grocery_db"
 )
 
 cursor = db.cursor()
 
-# ✅ THEN routes
+# 🔹 Create table if not exists
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    price FLOAT,
+    quantity INT
+)
+""")
+db.commit()
+
+# 🔹 HTML Template (No separate file needed)
+HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Grocery Management</title>
+</head>
+<body style="font-family: Arial; background-color: #f2f2f2; text-align:center;">
+
+    <h1>🛒 Grocery Management System</h1>
+
+    <form method="POST" action="/add">
+        <input type="text" name="name" placeholder="Product Name" required><br><br>
+        <input type="number" name="price" placeholder="Price" required><br><br>
+        <input type="number" name="quantity" placeholder="Quantity" required><br><br>
+        <button type="submit">Add Product</button>
+    </form>
+
+    <h2>📦 Product List</h2>
+
+    <table border="1" style="margin:auto;">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+        </tr>
+        {% for p in products %}
+        <tr>
+            <td>{{p[0]}}</td>
+            <td>{{p[1]}}</td>
+            <td>{{p[2]}}</td>
+            <td>{{p[3]}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>
+"""
+
+# 🔹 Home Route (IMPORTANT for deployment)
 @app.route('/')
 def home():
-    return render_template('index.html')
+    cursor.execute("SELECT * FROM products")
+    products = cursor.fetchall()
+    return render_template_string(HTML, products=products)
 
-# ✅ RUN
-if __name__ == "__main__":
-    app.run(debug=True)
-def home():
-    return render_template('index.html')
-
-# ------------------ ADD PRODUCT ------------------
-@app.route('/add_product', methods=['POST'])
-def add_product():
+# 🔹 Add Product
+@app.route('/add', methods=['POST'])
+def add():
     name = request.form['name']
     price = request.form['price']
-    qty = request.form['qty']
+    quantity = request.form['quantity']
 
     cursor.execute(
-        "INSERT INTO products (name, price, quantity) VALUES (%s,%s,%s)",
-        (name, price, qty)
+        "INSERT INTO products (name, price, quantity) VALUES (%s, %s, %s)",
+        (name, price, quantity)
     )
     db.commit()
 
-    return redirect('/products')
+    return redirect('/')
 
-# ------------------ VIEW PRODUCTS ------------------
-@app.route('/products')
-def products():
-    cursor.execute("SELECT * FROM products")
-    data = cursor.fetchall()
-    return render_template('products.html', products=data)
-
-# ------------------ ADD TO CART ------------------
-@app.route('/add_to_cart/<name>')
-def add_to_cart(name):
-    cursor.execute("SELECT price FROM products WHERE name=%s", (name,))
-    result = cursor.fetchone()
-
-    if result:
-        price = result[0]
-        cart.append((name, price, 1, price))
-
-    return redirect('/cart')
-
-# ------------------ VIEW CART ------------------
-@app.route('/cart')
-def view_cart():
-    total = sum(item[3] for item in cart)
-    return render_template('cart.html', cart=cart, total=total)
-
-# ------------------ GENERATE BILL ------------------
-@app.route('/bill', methods=['POST'])
-def generate_bill():
-    phone = request.form['phone']
-
-    for item in cart:
-        name, price, qty, total = item
-
-        # update stock
-        cursor.execute(
-            "UPDATE products SET quantity = quantity - %s WHERE name=%s",
-            (qty, name)
-        )
-
-        # insert into sales
-        cursor.execute(
-            "INSERT INTO sales (name, quantity, total) VALUES (%s,%s,%s)",
-            (name, qty, total)
-        )
-
-        # insert into customers
-        cursor.execute(
-            "INSERT INTO customers (phone, product, quantity, total) VALUES (%s,%s,%s,%s)",
-            (phone, name, qty, total)
-        )
-
-    db.commit()
-    cart.clear()
-
-    return "✅ Bill Generated Successfully!"
-
-# ------------------ CUSTOMER HISTORY ------------------
-@app.route('/customers/<phone>')
-def customers(phone):
-    cursor.execute(
-        "SELECT product, quantity, total FROM customers WHERE phone=%s",
-        (phone,)
-    )
-    data = cursor.fetchall()
-    return render_template('customers.html', data=data)
-
-# ------------------ RUN APP ------------------
-if __name__ == "__main__":
+# 🔹 Run App
+if __name__ == '__main__':
     app.run(debug=True)
