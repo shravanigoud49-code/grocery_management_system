@@ -1,30 +1,10 @@
 from flask import Flask, render_template_string, request, redirect
-import mysql.connector
 
 app = Flask(__name__)
 
-# 🔹 MySQL Connection (Change credentials if needed)
-db = mysql.connector.connect(
-    host="localhost",        # change if using online DB
-    user="root",
-    password="",
-    database="grocery_db"
-)
+# Temporary storage (instead of MySQL)
+products = []
 
-cursor = db.cursor()
-
-# 🔹 Create table if not exists
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS products (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    price FLOAT,
-    quantity INT
-)
-""")
-db.commit()
-
-# 🔹 HTML Template (No separate file needed)
 HTML = """
 <!DOCTYPE html>
 <html>
@@ -53,10 +33,10 @@ HTML = """
         </tr>
         {% for p in products %}
         <tr>
-            <td>{{p[0]}}</td>
-            <td>{{p[1]}}</td>
-            <td>{{p[2]}}</td>
-            <td>{{p[3]}}</td>
+            <td>{{loop.index}}</td>
+            <td>{{p.name}}</td>
+            <td>{{p.price}}</td>
+            <td>{{p.quantity}}</td>
         </tr>
         {% endfor %}
     </table>
@@ -65,28 +45,19 @@ HTML = """
 </html>
 """
 
-# 🔹 Home Route (IMPORTANT for deployment)
 @app.route('/')
 def home():
-    cursor.execute("SELECT * FROM products")
-    products = cursor.fetchall()
     return render_template_string(HTML, products=products)
 
-# 🔹 Add Product
 @app.route('/add', methods=['POST'])
 def add():
-    name = request.form['name']
-    price = request.form['price']
-    quantity = request.form['quantity']
-
-    cursor.execute(
-        "INSERT INTO products (name, price, quantity) VALUES (%s, %s, %s)",
-        (name, price, quantity)
-    )
-    db.commit()
-
+    product = {
+        "name": request.form['name'],
+        "price": request.form['price'],
+        "quantity": request.form['quantity']
+    }
+    products.append(product)
     return redirect('/')
 
-# 🔹 Run App
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
